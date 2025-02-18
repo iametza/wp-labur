@@ -28,7 +28,7 @@ function labur_plugin_options() { // Page design. This function is called in adm
         <h2>Labur Wordpress Plugin</h2>
         <form action="<?php echo esc_url( admin_url('options.php') ); ?>" method="post">
             <?php settings_fields('labur-group'); ?>
-            <?php @do_settings_fields('labur-group'); ?>
+            <?php @do_settings_sections('labur-group'); ?>
             <table class="form-table">
                 <tr valign="top">
                     <th scope="row"><label for="labur_dashboard_title"><?php echo esc_html(__('API key', 'wp-labur')); ?></label></th>
