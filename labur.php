@@ -84,21 +84,66 @@ add_action( 'add_meta_boxes', 'labur_init' ); // wp hook is valid too
 	*/
 
 function labur_get_url_process() {
-    if(isset($_POST['postID']))
+    if (isset($_POST['postID']))
     {
-    $post_id = intval( $_POST['postID'] );
-		$post_url = esc_url(get_permalink($post_id));
-    $api_key = esc_attr(get_option('labur_settings_api_key'));
-		$host_url = esc_url('https://labur.eus');
-		$shortenedurl = file_get_contents($host_url.'/api/v2/action/shorten?key='.$api_key.'&url='.$post_url.'&is_secret=false');
-    update_post_meta($post_id, 'labur_shortened_url', esc_url_raw($shortenedurl)); // post id, field name, data to insert. This functions save the data
-    echo esc_url($shortenedurl);
+      $post_id = intval( $_POST['postID'] );
+      $post_url = esc_url(get_permalink($post_id));
 
+      $result = laburtu($post_url);
+      if ($result['status'] == 201) {
+        $labur_url = 'https://' . $result['data']->domeinua . '/' . $result['data']->laburdura;
+        wp_send_json_success($labur_url);
+      } else {
+        wp_send_json_error($result['data']->url);
+      }
     }
 
     exit();
 }
 add_action('wp_ajax_labur_get_url', 'labur_get_url_process'); // Defined labur_get_url action. This is called in labur.js file . wp_ajax is a standard prefix in Wordpress
+add_action('wp_ajax_nopriv_labur_get_url', 'unauthorized');
 
+function unauthorized() {
+  wp_send_json_error('Unauthorized.', 401);
+}
+
+function laburtu($url) {
+  $api_url = esc_url('https://labur.eus/api/v1/laburtu');
+  $api_key = esc_attr(get_option('labur_settings_api_key'));
+
+  $headers = [
+    'Accept: application/json',
+    'Authorization: Bearer ' . $api_key,
+  ]; 
+ 
+  $data = [
+    'url' => $url
+  ];
+
+  $curl = curl_init();
+
+  curl_setopt_array($curl, array(
+    CURLOPT_URL => $api_url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => '',
+    CURLOPT_MAXREDIRS => 10,
+    CURLOPT_TIMEOUT => 0,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_HTTPHEADER => $headers,
+    CURLOPT_POSTFIELDS => $data
+  ));
+
+  $response = curl_exec($curl);
+  $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+  $response = json_decode($response);
+  
+  return [
+    'status' => $httpcode,
+    'data' => $response
+  ];
+}
 
 ?>

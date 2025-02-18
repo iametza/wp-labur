@@ -1,22 +1,25 @@
-jQuery(document).ready(function($) {
-    jQuery("#button_labur_get_url").click(function(){
-
-    var url = MyAjax.ajax_path;
-    jQuery.ajax({
+document.addEventListener("DOMContentLoaded", function(event) {
+    document.getElementById('button_labur_get_url').addEventListener('click', () => {
+        jQuery.ajax({
             type: 'POST',
-            url: url,
-            dataType: 'text',
-
+            url: MyAjax.ajax_path,
+            dataType: 'json',
             data: {
-                postID: MyAjax.post_id, // From PHP
-                action: MyAjax.action // From PHP-tik
+                postID: MyAjax.post_id,
+                action: MyAjax.action
             },
-            success: function(data, textStatus, XMLHttpRequest){
-                $('#labur_shortened_url').val(data);
-            },
-            error: function(MLHttpRequest, textStatus, errorThrown){
-                alert(errorThrown);
+            async: true
+            
+        }).done((data) => {
+            if (data.success) {
+                jQuery('#labur_shortened_url').val(data.data)
+            } else {
+                alert(data.data)
             }
-        });
+
+        }).error(() => {
+            alert(data)
+
+        })
     });
 });
