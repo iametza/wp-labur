@@ -94,7 +94,7 @@ function labur_get_url_process() {
         $labur_url = 'https://' . $result['data']->domeinua . '/' . $result['data']->laburdura;
         wp_send_json_success($labur_url);
       } else {
-        wp_send_json_error($result['data']->url);
+        wp_send_json_error($result['data']->message);
       }
     }
 
